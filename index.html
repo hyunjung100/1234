@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChatGPT Simple Bot</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    #chat {
+      border: 1px solid #ccc;
+      padding: 10px;
+      min-height: 300px;
+      max-height: 500px;
+      overflow-y: auto;
+      background: #f9f9f9;
+    }
+    .user-msg {
+      color: blue;
+      margin: 10px 0;
+    }
+    .bot-msg {
+      color: green;
+      margin: 10px 0;
+    }
+    #input {
+      width: 100%;
+      padding: 10px;
+    }
+    #send {
+      padding: 10px 20px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>💬 ChatGPT Mini Bot</h2>
+  <div id="chat">👉 질문을 입력하고 Enter 또는 Send를 눌러보세요.</div>
+  <textarea id="input" rows="3" placeholder="질문을 입력하세요..."></textarea><br />
+  <button id="send">Send</button>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const input = document.getElementById('input');
+    const send = document.getElementById('send');
+
+    async function sendMessage() {
+      const userInput = input.value.trim();
+      if (!userInput) return;
+
+      const userDiv = document.createElement('div');
+      userDiv.className = 'user-msg';
+      userDiv.textContent = `👤 You: ${userInput}`;
+      chat.appendChild(userDiv);
+
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'bot-msg';
+      loadingDiv.textContent = '🤖 Bot: 답변 생성 중...';
+      chat.appendChild(loadingDiv);
+
+      chat.scrollTop = chat.scrollHeight;
+      input.value = '';
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: userInput })
+        });
+
+        const data = await res.json();
+        loadingDiv.textContent = `🤖 Bot: ${data.reply || "❗ 오류 발생"}`;
+        chat.scrollTop = chat.scrollHeight;
+      } catch (e) {
+        loadingDiv.textContent = "❗ 오류가 발생했습니다.";
+      }
+    }
+
+    send.onclick = sendMessage;
+    input.addEventListener("keypress", e => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
